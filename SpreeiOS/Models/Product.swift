@@ -18,19 +18,33 @@ class Product {
     var name: String?
     var description: String?
     var price: String?
-    var variantId: Int?
+
     var thumbnailURL: String?
     var imageURL: String?
     var ratingsCount: Int?
+    var averageRating: Double
 
     var ratingsDistribution = [Int: Int]()
 
-    var averageRating: Double
+
+    var allVariants = [Variant]()
 
     var imageURLs = [String]()
 
     var reviews = [ProductReview]()
     var properties = [ProductProperty]()
+
+    var masterVariant: Variant {
+        return allVariants.filter({ $0.isMaster } )[0]
+    }
+
+    var variants: [Variant]  {
+        return allVariants.filter({ !$0.isMaster } )
+    }
+
+    var hasVariants: Bool {
+        return variants.count > 0
+    }
 
     var reviewsCount: Int {
         return reviews.count
@@ -45,14 +59,17 @@ class Product {
         self.name = json["name"].stringValue
         self.description = json["description"].stringValue
         self.price = json["display_price"].stringValue
-        self.variantId = json["variants_including_master"][0]["id"].intValue
-        
+        self.ratingsCount = json["reviews_count"].intValue
+        self.averageRating = json["avg_rating"].doubleValue
+
         if let imageURL = json["images"][0]["product_url"].rawString() {
             self.thumbnailURL = imageURL
         }
 
-        self.ratingsCount = json["reviews_count"].intValue
-        self.averageRating = json["avg_rating"].doubleValue
+        for variantJSON in json["variants_including_master"].arrayValue {
+            let variant = Variant(fromJSON: variantJSON)
+            self.allVariants.append(variant)
+        }
 
         for propertyJSON in json["product_properties"].arrayValue {
             let property = ProductProperty(fromJSON: propertyJSON)

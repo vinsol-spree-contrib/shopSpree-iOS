@@ -9,7 +9,7 @@ The backend used for this app is hosted at: http://shop-spree.herokuapp.com/
 
 * Homepage showing all the banners
 * Products list and grid view
-* Product Details
+* Product Details (with variants)
 * Cart Management
 * User Sign-In & Sign-Up
 * User Address Management
@@ -57,12 +57,10 @@ open -a Xcode SpreeiOS.xcworkspace
 # Known Limitations
 
 * The product images are not cached right now.
-* The products having variants cannot be added to cart and shows error.
 * WIP - Product reviews and ratings
 
 # Upcoming Features
 
-* Variant Management
 * Product Searching
 * Product Filtering & Sorting
 * Taxonomies View

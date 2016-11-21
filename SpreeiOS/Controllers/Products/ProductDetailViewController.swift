@@ -10,8 +10,9 @@ import UIKit
 
 class ProductDetailViewController: BaseViewController {
 
-    var productID = 36
+    var productID: Int!
     var product: Product?
+    var selectedVariant: Variant?
 
     @IBOutlet weak var navBarView: StaticNavBarView!
 
@@ -20,6 +21,7 @@ class ProductDetailViewController: BaseViewController {
 
     @IBOutlet weak var galleryView: ImageGallery!
     @IBOutlet weak var productDetailsView: ProductDetailsView!
+    @IBOutlet weak var productVariantsView: ProductVariantsView!
     @IBOutlet weak var productPropertiesView: ProductPropertiesView!
     @IBOutlet weak var productActionsView: UIView!
 
@@ -58,7 +60,6 @@ class ProductDetailViewController: BaseViewController {
         configureProductDetailsView()
 
         fetchProduct()
-
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -93,6 +94,8 @@ class ProductDetailViewController: BaseViewController {
     }
 
     func configureProductDetailsView() {
+        productVariantsView.isHidden = true
+        productVariantsView.delegate = self
         productDetailsView.ratingView.delegate = self
     }
 
@@ -106,8 +109,8 @@ class ProductDetailViewController: BaseViewController {
     func requestData() -> URLRequestParams {
         var data = URLRequestParams()
 
-        data["line_item[variant_id]"] = product!.variantId! as AnyObject?
-        data["line_item[qty]"] = 1 as AnyObject?
+        data["line_item[variant_id]"] = selectedVariant!.id!
+        data["line_item[qty]"] = 1
 
         return data
     }
@@ -127,6 +130,13 @@ class ProductDetailViewController: BaseViewController {
             productPropertiesView.setup()
         }
 
+        if product!.hasVariants {
+            productVariantsView.product = product!
+            productVariantsView.isHidden = false
+        } else {
+            selectedVariant = product!.masterVariant
+        }
+
     }
 }
 
@@ -142,6 +152,16 @@ private extension ProductDetailViewController {
     }
 
     func addProductToCart() {
+        if User.currentUser == nil {
+            alert(message: "Please sign in to add this product to your cart")
+            return
+        }
+
+        if selectedVariant == nil {
+            alert(message: "Please select a variant to add to your cart")
+            return
+        }
+
         CartApiClient.addLineItem(Order.currentOrder!.id, data: requestData(), success: { order in
                 Order.currentOrder = order
 
@@ -185,6 +205,14 @@ extension ProductDetailViewController: ImageGalleryDelegate {
 
 }
 
+extension ProductDetailViewController: ProductVariantsViewDelegate {
+
+    func didSelectVariant(variant: Variant) {
+        self.selectedVariant = variant
+    }
+
+}
+
 extension ProductDetailViewController: ProductRatingViewDelegate {
 
     func didClickRatingButton() {
@@ -192,3 +220,4 @@ extension ProductDetailViewController: ProductRatingViewDelegate {
     }
 
 }
+
